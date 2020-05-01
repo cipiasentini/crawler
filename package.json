@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "crawler",
   "main": "index.js",
-  "author": "Ariel",
+  "author": "",
   "license": "MIT",
   "scripts": {
     "start": "node index.js"
