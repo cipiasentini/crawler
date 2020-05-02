@@ -197,6 +197,7 @@ function getFormattedVals(possible_string_date) {
     }
     return possible_string_date
 }
+
 const reschedule = async () => {
     // c.queue([{
     //     uri: 'https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=2602501',
