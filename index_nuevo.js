@@ -62,7 +62,7 @@ const c = new Crawler({
                     // **** OPOSICIONES TABLA DESDE VARIABLE JS ****
 
                     let list_oposiciones = [];
-                    let var_ops = obtenerValorVariableJS(text,"var opos = ");
+                    let var_ops = getValueVariableJS(text,"var opos = ");
                     let oposiciones = eval(var_ops);
                     oposiciones.forEach(oposicion => {
                         let n_op = {};
@@ -82,7 +82,7 @@ const c = new Crawler({
 
                     // **** VISTAS TABLA DESDE VARIABLE JS ****
                     let list_vistas = [];
-                    var var_vis = obtenerValorVariableJS(text,"var vistas = ");
+                    var var_vis = getValueVariableJS(text,"var vistas = ");
                     var vistas = eval(var_vis);
                     vistas.forEach(vista => {
                         let n_vis = {};
@@ -124,7 +124,7 @@ function formatDateFromSpan(possible_string_date) {
   return possible_string_date
 }
 
-function obtenerValorVariableJS(target, variable){
+function getValueVariableJS(target, variable){
   var recortar = target.substring(target.search(variable)+variable.length,target.length);
   var result = recortar.substring(0,recortar.search(";"));
   return result;
