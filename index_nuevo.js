@@ -45,7 +45,13 @@ const c = new Crawler({
                         fieldName = slugify(fieldName.replace(":","").replace("\.",""), "_")
                         
                         if (fieldName.length > 0){
-                            obj[fieldName] = text.trim()
+                            let formatted_field = text.trim()
+                            try {
+                                formatted_field = formatDateFromSpan(text.trim())
+                            } catch {
+                                formatted_field = text.trim()
+                            }
+                            obj[fieldName] = formatted_field
                         }
                     })
 
@@ -92,7 +98,10 @@ const c = new Crawler({
                     });
                     obj["VISTAS"] = list_vistas;
 
-                    insertInDB(obj)
+                    // esto lo hago solo para mi
+                    if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
+                        insertInDB(obj)
+                    }
                 }
                 catch(e){
                     console.log(`Error: ${e}`);
@@ -102,6 +111,16 @@ const c = new Crawler({
         done();
     }
 });
+
+function formatDateFromSpan(possible_string_date) {
+  var date_sin_hora = possible_string_date.split(" ")[0]
+  var date = date_sin_hora.split("/")
+  if (date.length == 3) {
+      // es porque es fecha
+      return `${date[2]}-${date[1]}-${date[0]}`
+  }
+  return possible_string_date
+}
 
 function obtenerValorVariableJS(target, variable){
   var recortar = target.substring(target.search(variable)+variable.length,target.length);
@@ -186,5 +205,5 @@ const insertInDB = (obj) => client.db("admin").collection("brands").insertOne(ob
 const existsInDB = (id) => client.db("admin").collection("brands").findOne({"acta":id}).then(it => it != null)
 
 //const getMaxFromDB = () => client.db("test").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0].acta)
-const getMaxFromDB = () => client.db("admin").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:1014099)
+const getMaxFromDB = () => client.db("admin").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
 
