@@ -9,7 +9,7 @@ const bodyParser = require('body-parser')
 const app = express()
 app.use(bodyParser.json())
 
-server = app.listen(process.env.PORT || 3000, () => console.log(`Listening on ${process.env.PORT || 3000}`))
+server = app.listen(process.env.PORT || 4000, () => console.log(`Listening on ${process.env.PORT || 3000}`))
 
 app.get('/', (req,res) => {res.send("Hola")})
 
@@ -47,7 +47,7 @@ const c = new Crawler({
                         if (fieldName.length > 0){
                             let formatted_field = text.trim()
                             try {
-                                formatted_field = formatDateFromSpan(text.trim())
+                                formatted_field = formatFromSpan(text.trim())
                             } catch {
                                 formatted_field = text.trim()
                             }
@@ -101,9 +101,9 @@ const c = new Crawler({
                     obj["VISTAS"] = list_vistas;
 
                     // esto lo hago solo para mi
-                    // if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
+                    if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
                     insertInDB(obj)
-                    // }
+                    }
                 }
                 catch(e){
                     console.log(`Error: ${e}`);
@@ -114,12 +114,28 @@ const c = new Crawler({
     }
 });
 
-function formatDateFromSpan(possible_string_date) {
+function parseIntStrict(stringValue) { 
+    if ( /^[\d\s]+$/.test(stringValue) )  // allows for digits or whitespace
+    {
+        return parseInt(stringValue);
+    }
+    else
+    {
+        return NaN;
+    }
+}
+
+function formatFromSpan(possible_string_date) {
   var date_sin_hora = possible_string_date.split(" ")[0]
   var date = date_sin_hora.split("/")
   if (date.length == 3) {
       // es porque es fecha
       return `${date[2]}-${date[1]}-${date[0]}`
+  } else {
+    var number = parseIntStrict(possible_string_date)
+    if (!isNaN(number)) {
+      return number
+    }
   }
   return possible_string_date
 }
