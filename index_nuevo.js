@@ -68,10 +68,11 @@ const c = new Crawler({
                         let n_op = {};
                         for (var prop in oposicion) {
                             if (Object.prototype.hasOwnProperty.call(oposicion, prop)) {
+                                let fieldName = prop.toUpperCase();
                                 try {
-                                    n_op[prop] = getFormattedVals(oposicion[prop]);
+                                    n_op[fieldName] = getFormattedVals(oposicion[prop]);
                                 } catch {
-                                    n_op[prop] = oposicion[prop];
+                                    n_op[fieldName] = oposicion[prop];
                                 }
                             }
                         }
@@ -87,10 +88,11 @@ const c = new Crawler({
                         let n_vis = {};
                         for (var prop in vista) {
                             if (Object.prototype.hasOwnProperty.call(vista, prop)) {
+                                let fieldName = prop.toUpperCase();
                                 try {
-                                    n_vis[prop] = getFormattedVals(vista[prop]);
+                                    n_vis[fieldName] = getFormattedVals(vista[prop]);
                                 } catch {
-                                    n_vis[prop] = vista[prop];
+                                    n_vis[fieldName] = vista[prop];
                                 }
                             }
                         }
@@ -99,9 +101,9 @@ const c = new Crawler({
                     obj["VISTAS"] = list_vistas;
 
                     // esto lo hago solo para mi
-                    if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
-                        insertInDB(obj)
-                    }
+                    // if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
+                    insertInDB(obj)
+                    // }
                 }
                 catch(e){
                     console.log(`Error: ${e}`);
@@ -200,10 +202,10 @@ const reschedule = async () => {
 
 
 
-const insertInDB = (obj) => client.db("admin").collection("brands").insertOne(obj).then(o => console.log(`${obj.acta} inserted in DB`)).catch(e => console.log(e))
+const insertInDB = (obj) => client.db("admin").collection("brands_nuevo").insertOne(obj).then(o => console.log(`${obj.acta} inserted in DB`)).catch(e => console.log(e))
 
-const existsInDB = (id) => client.db("admin").collection("brands").findOne({"acta":id}).then(it => it != null)
+const existsInDB = (id) => client.db("admin").collection("brands_nuevo").findOne({"acta":id}).then(it => it != null)
 
 //const getMaxFromDB = () => client.db("test").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0].acta)
-const getMaxFromDB = () => client.db("admin").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
+const getMaxFromDB = () => client.db("admin").collection("brands_nuevo").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
 
