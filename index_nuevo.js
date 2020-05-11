@@ -101,9 +101,9 @@ const c = new Crawler({
                     obj["VISTAS"] = list_vistas;
 
                     // esto lo hago solo para mi
-                    if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
+                    // if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
                     insertInDB(obj)
-                    }
+                    // }
                 }
                 catch(e){
                     console.log(`Error: ${e}`);
@@ -128,15 +128,27 @@ function parseIntStrict(stringValue) {
 function formatFromSpan(possible_string_date) {
   var date_sin_hora = possible_string_date.split(" ")[0]
   var date = date_sin_hora.split("/")
-  if (date.length == 3) {
-      // es porque es fecha
-      return `${date[2]}-${date[1]}-${date[0]}`
-  } else {
-    var number = parseIntStrict(possible_string_date)
-    if (!isNaN(number)) {
-      return number
+  // test si es fecha (viendo si todos son numeros)
+  var no_es_fecha = false;
+  date.forEach(element => {
+      if (isNaN(parseInt(element.trim()))) {
+        no_es_fecha = true;
+        break;
+      }
+  });
+  // si es fecha parseamos
+  if (!no_es_fecha) {
+    if (date.length == 3) {
+        // es porque es fecha
+        return `${date[2]}-${date[1]}-${date[0]}`
+    } else {
+      var number = parseIntStrict(possible_string_date)
+      if (!isNaN(number)) {
+        return number
+      }
     }
   }
+  // sino devolvemos el string original
   return possible_string_date
 }
 
