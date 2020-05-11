@@ -48,7 +48,8 @@ const c = new Crawler({
                             let formatted_field = text.trim()
                             try {
                                 formatted_field = formatFromSpan(text.trim())
-                            } catch {
+                            } catch (e) {
+                                console.log(e)
                                 formatted_field = text.trim()
                             }
                             obj[fieldName] = formatted_field
@@ -101,9 +102,9 @@ const c = new Crawler({
                     obj["VISTAS"] = list_vistas;
 
                     // esto lo hago solo para mi
-                    // if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
+//                    if (obj["VISTAS"].length != 0 || obj["OPOSICIONES"].length != 0) {
                     insertInDB(obj)
-                    // }
+ //                   }
                 }
                 catch(e){
                     console.log(`Error: ${e}`);
@@ -114,40 +115,83 @@ const c = new Crawler({
     }
 });
 
+// si tiene espacios en blanco entonces retorna NaN
 function parseIntStrict(stringValue) { 
-    if ( /^[\d\s]+$/.test(stringValue) )  // allows for digits or whitespace
-    {
-        return parseInt(stringValue);
-    }
-    else
-    {
-        return NaN;
-    }
+  if ( /^[\d\s]+$/.test(stringValue) )  
+  {
+    return parseInt(stringValue);
+  }
+  else
+  {
+    return NaN;
+  }
 }
 
 function formatFromSpan(possible_string_date) {
+
+  // puede ser CUIT 
+  var es_cuit = false;
+  var cuit = possible_string_date.split('-')
+  if (cuit.length == 3) {
+    if (cuit[0].length == 2 && cuit[2].length == 1) {
+      es_cuit = true
+    }
+  }
+  if (es_cuit) {
+    return possible_string_date.trim()
+  }
+
+  // puede ser NUMEROS SEPARADOS , como en renovada_por y renovacion_de que haya espacios y guiones -.
+
+  // ejemplo " - 3810353" , " - 3810353 - 3810353"
+  // hay que separar por - y trimear para lego agregarlo como array
+  var arr = possible_string_date.split('-')
+  var nuevo_arr = []
+  var no_son_numeros_separados = false;
+  if (arr.length > 1) {
+    arr.forEach(element => {
+      var el = parseIntStrict(element.trim());
+      if (!isNaN(el)) {
+        nuevo_arr.push(el);
+      } else {
+        if (element != '') {
+          no_son_numeros_separados = true
+        } 
+      }
+    });
+    if (!no_son_numeros_separados) {
+      return nuevo_arr
+    }
+  }
+  
+  // puede ser FECHA
+  
   var date_sin_hora = possible_string_date.split(" ")[0]
   var date = date_sin_hora.split("/")
   // test si es fecha (viendo si todos son numeros)
-  var no_es_fecha = false;
-  date.forEach(element => {
-      if (isNaN(parseInt(element.trim()))) {
+  if (date.length == 3) {
+    var no_es_fecha = false;
+    date.forEach(element => {
+      var el = parseIntStrict(element.trim());
+      if (isNaN(el)) {
         no_es_fecha = true;
-        break;
       }
-  });
-  // si es fecha parseamos
-  if (!no_es_fecha) {
-    if (date.length == 3) {
+    });
+    // si es fecha parseamos
+    if (!no_es_fecha) {
+      if (date.length == 3) {
         // es porque es fecha
         return `${date[2]}-${date[1]}-${date[0]}`
-    } else {
-      var number = parseIntStrict(possible_string_date)
-      if (!isNaN(number)) {
-        return number
       }
     }
   }
+  
+  // puede ser un NUMERO
+  var numero = parseIntStrict(possible_string_date.trim());
+  if (!isNaN(numero)) {
+    return numero
+  }
+
   // sino devolvemos el string original
   return possible_string_date
 }
@@ -212,6 +256,7 @@ const reschedule = async () => {
             console.log(`Enque ${i}`);
             if (i == start + limit){
                 c.queue([{
+                    // uri: `https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=2835767`,
                     uri: `https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=${i}`,
                     // The global callback won't be called
                     callback: function (error, res, done) {
@@ -221,6 +266,7 @@ const reschedule = async () => {
                 }]);
             }
             else {
+                // c.queue(`https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=2835767`);
                 c.queue(`https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=${i}`);
             }
         }
