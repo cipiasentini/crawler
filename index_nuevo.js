@@ -32,7 +32,7 @@ const c = new Crawler({
             if ($("h1").text() != ""){
                 try {
                     obj["acta"] = $("h1").text().match(/\d+/g).map(Number)[0];
-                    obj.image = $("#logo img").attr("src")
+                    // obj.image = $("#logo img").attr("src")
                     $("label.input").each((i, elem) => {
                         let text = $(elem).find("span").text().trim()
                         let fieldName = elem.childNodes[0].nodeValue.trim()
@@ -160,7 +160,7 @@ function formatFromSpan(possible_string_date) {
       }
     });
     if (!no_son_numeros_separados) {
-      return nuevo_arr
+      return `${nuevo_arr}`
     }
   }
   
@@ -189,6 +189,9 @@ function formatFromSpan(possible_string_date) {
   // puede ser un NUMERO
   var numero = parseIntStrict(possible_string_date.trim());
   if (!isNaN(numero)) {
+    if (numero == 0) {
+      return ""
+    }
     return numero
   }
 
