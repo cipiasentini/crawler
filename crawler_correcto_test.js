@@ -179,7 +179,7 @@ const c = new Crawler({
                       lista_caducidades.push(n_obj);
                   });
                   obj["CADUCIDADES_NULIDADES"] = lista_caducidades;
-                  
+
                 }
 
                 console.log(obj)
@@ -274,7 +274,8 @@ const c = new Crawler({
     }
 });
 
-c.queue(`https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=2602511`);
+// c.queue(`https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=2602511`);
+c.queue(`https://portaltramites.inpi.gob.ar/MarcasConsultas/Resultado?acta=1137278`);
 
 // si tiene espacios en blanco entonces retorna NaN
 function parseIntStrict(stringValue) { 
