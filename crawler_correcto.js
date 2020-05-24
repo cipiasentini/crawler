@@ -43,12 +43,23 @@ const c = new Crawler({
           for (let index = 1; index <= limite; index++) {
             
             // obtenemos la propiedad padre
+            let subtitulo;
             let titulo = $(`#accordion-${index} .panel-title a`).text();
+            titulo = titulo.split(":");
+            try {
+              subtitulo = titulo[1].trim();
+            } catch (e) {}
+            titulo = titulo[0].trim()
             titulo = slugify(titulo.replace(":","").replace("\.",""), "_");
             obj[titulo] = {};
             
             // obtenemos el objeto de cada prop padre
             $(`#accordion-${index} .panel-body label.input`).each((i, elem) => {
+              // el subtitulo es si en el titulo tiene algo despues de un ':'
+              if (subtitulo != undefined) {
+                obj[titulo]['SUBTITULO'] = subtitulo
+              }
+              
               let text = $(elem).find("span").text().trim()
               let fieldName = elem.childNodes[0].nodeValue.trim()
               
@@ -57,7 +68,7 @@ const c = new Crawler({
                 fieldName = fieldName.split(":")[0]
               }
               
-              fieldName = slugify(fieldName.replace(":","").replace("\.",""), "_")
+              fieldName = normalize(slugify(fieldName.replace(":","").replace("\.",""), "_"))
               
               if (fieldName.length > 0){
                 let formatted_field = text.trim()
@@ -84,7 +95,7 @@ const c = new Crawler({
               let n_op = {};
               for (var prop in oposicion) {
                 if (Object.prototype.hasOwnProperty.call(oposicion, prop)) {
-                  let fieldName = prop.toUpperCase();
+                  let fieldName = normalize(prop.toUpperCase());
                   try {
                     n_op[fieldName] = getFormattedVals(oposicion[prop]);
                   } catch {
@@ -105,7 +116,7 @@ const c = new Crawler({
               let n_vis = {};
               for (var prop in vista) {
                 if (Object.prototype.hasOwnProperty.call(vista, prop)) {
-                  let fieldName = prop.toUpperCase();
+                  let fieldName = normalize(prop.toUpperCase());
                   try {
                     n_vis[fieldName] = getFormattedVals(vista[prop]);
                   } catch {
@@ -126,7 +137,7 @@ const c = new Crawler({
               let n_obj = {};
               for (var prop in element) {
                 if (Object.prototype.hasOwnProperty.call(element, prop)) {
-                  let fieldName = prop.toUpperCase();
+                  let fieldName = normalize(prop.toUpperCase());
                   try {
                     n_obj[fieldName] = getFormattedVals(element[prop]);
                   } catch {
@@ -147,7 +158,7 @@ const c = new Crawler({
               let n_obj = {};
               for (var prop in element) {
                 if (Object.prototype.hasOwnProperty.call(element, prop)) {
-                  let fieldName = prop.toUpperCase();
+                  let fieldName = normalize(prop.toUpperCase());
                   try {
                     n_obj[fieldName] = getFormattedVals(element[prop]);
                   } catch {
@@ -162,13 +173,13 @@ const c = new Crawler({
             // **** CADUCIDADES/NULIDADES TABLA DESDE VARIABLE JS ****
             
             let lista_caducidades = [];
-            var var_ccnn = getValueVariableJS(text, "var CambioRubro = ");
+            var var_ccnn = getValueVariableJS(text, "var Caducidades_Nulidades = ");
             var caducidades_nulidades = eval(var_ccnn);
             caducidades_nulidades.forEach(element => {
               let n_obj = {};
               for (var prop in element) {
                 if (Object.prototype.hasOwnProperty.call(element, prop)) {
-                  let fieldName = prop.toUpperCase();
+                  let fieldName = normalize(prop.toUpperCase());
                   try {
                     n_obj[fieldName] = getFormattedVals(element[prop]);
                   } catch {
@@ -180,6 +191,36 @@ const c = new Crawler({
             });
             obj["CADUCIDADES_NULIDADES"] = lista_caducidades;
             
+            // **** DEMANDAS TABLA DESDE VARIABLE JS ****
+            
+            let lista_demandas = [];
+            var var_dd = getValueVariableJS(text, "var Demandas = ");
+            var demandas = eval(var_dd);
+            demandas.forEach(element => {
+              let n_obj = {};
+              for (var prop in element) {
+                if (Object.prototype.hasOwnProperty.call(element, prop)) {
+                  let fieldName = normalize(prop.toUpperCase());
+                  try {
+                    n_obj[fieldName] = getFormattedVals(element[prop]);
+                  } catch {
+                    n_obj[fieldName] = element[prop];
+                  }
+                }
+              }
+              lista_demandas.push(n_obj);
+            });
+            obj["DEMANDAS"] = lista_demandas;
+            
+          }
+          
+          // almacenamos como array vacio a las props con objetos vacias (asi solo preguntamos por length en front)
+          for(var pp in obj) {
+            let empty = Object.keys(obj[pp]).length === 0 && obj[pp].constructor === Object
+            if (empty) {
+              // delete obj[pp]
+              obj[pp] = []
+            }
           }
           
           insertInDB(obj)
@@ -202,29 +243,34 @@ function parseIntStrict(stringValue) {
   }
   else
   {
-    return NaN;
+    if (stringValue[0] != '-') {
+      // puede ser negativo
+      return NaN;
+    }
+    return parseInt(stringValue);
   }
 }
 
-function formatFromSpan(possible_string_date) {
+// formateo de los datos del body html
+function formatFromSpan(final_format) {
   
   // puede ser CUIT 
   var es_cuit = false;
-  var cuit = possible_string_date.split('-')
+  var cuit = final_format.split('-')
   if (cuit.length == 3) {
     if (cuit[0].length == 2 && cuit[2].length == 1) {
       es_cuit = true
     }
   }
   if (es_cuit) {
-    return possible_string_date.trim()
+    return final_format.trim()
   }
   
   // puede ser NUMEROS SEPARADOS , como en renovada_por y renovacion_de que haya espacios y guiones -.
   
   // ejemplo " - 3810353" , " - 3810353 - 3810353"
   // hay que separar por - y trimear para lego agregarlo como array
-  var arr = possible_string_date.split('-')
+  var arr = final_format.split('-')
   var nuevo_arr = []
   var no_son_numeros_separados = false;
   if (arr.length > 1) {
@@ -245,7 +291,7 @@ function formatFromSpan(possible_string_date) {
   
   // puede ser FECHA
   
-  var date_sin_hora = possible_string_date.split(" ")[0]
+  var date_sin_hora = final_format.split(" ")[0]
   var date = date_sin_hora.split("/")
   // test si es fecha (viendo si todos son numeros)
   if (date.length == 3) {
@@ -266,7 +312,7 @@ function formatFromSpan(possible_string_date) {
   }
   
   // puede ser un NUMERO
-  var numero = parseIntStrict(possible_string_date.trim());
+  var numero = parseIntStrict(final_format.trim());
   if (!isNaN(numero)) {
     if (numero == 0) {
       return ""
@@ -275,33 +321,64 @@ function formatFromSpan(possible_string_date) {
   }
   
   // sino devolvemos el string original
-  return possible_string_date
+  return final_format
 }
 
+// formateo de las variables de la seccion SCRIPT...
 function getValueVariableJS(target, variable){
   var recortar = target.substring(target.search(variable)+variable.length,target.length);
   var result = recortar.substring(0,recortar.search(";"));
   return result;
 }
 
-function getFormattedVals(possible_string_date) {
-  if (possible_string_date != "" || possible_string_date != undefined || possible_string_date != null) {
+// formateo los datos de la seccion SCRIPT...
+function getFormattedVals(final_format) {
+  if (final_format != "" || final_format != undefined || final_format != null) {
+    
     // me fijo si no es un numero primero
-    var possible_number = parseInt(possible_string_date.slice(1,-1));
-    if (!isNaN(possible_number)) {
-      return possible_string_date
+    var possible_number = parseIntStrict(final_format.slice(1,-1));
+    if (!isNaN(possible_number)) { // si es un numero lo retorna
+      return final_format
     }
-    var date = possible_string_date.slice(6, -2); // si puede hacer esto es o bien fecha (valida, invalida), o bien string
-    date = parseInt(date)
-    // es string, devuelvo tal cual
+    
+    // date formato '/Date(nnnnnnnnnnnnn)/' (de los scripts)
+    var date = final_format.slice(6, -2); // si puede hacer esto es o bien fecha (valida, invalida), o bien string
+    date = parseIntStrict(date)
+    // es string, puede ser fecha en formato string, o string cualquiera
     if (isNaN(date)) {
-      return possible_string_date;
+
+      // hubo un caso donde se almaceno fecha formato texto plano (como en body)
+      // paso en el ejemplo que tiene demandas, entonces tengo que parsear a ver si es ese tipo de fecha
+
+      var date_sin_hora = final_format.split(" ")[0]
+      var date_tentativa = date_sin_hora.split("/")
+      // test si es fecha (viendo si todos son numeros)
+
+      if (date_tentativa.length == 3) {
+        var no_es_fecha = false;
+        date_tentativa.forEach(element => {
+          var el = parseIntStrict(element.trim());
+          if (isNaN(el)) {
+            no_es_fecha = true;
+          }
+        });
+        // si es fecha parseamos
+        if (!no_es_fecha) {
+          if (date_tentativa.length == 3) {
+            // es porque es fecha
+            return `${date_tentativa[2]}-${date_tentativa[1]}-${date_tentativa[0]}`
+          }
+        }
+      }
+
+      // sino retorno el string nomas
+      return final_format.replace(/'/g, '"'); // ojo con esto, hay que ver si toma la BD y consultas y todo almacenar json con 'string "quote"'
     }
+
     // no posee fecha (da negativo cuando no tiene en el script de la web)
     if (date < 0) {
       return ""
     }
-    
     date = new Date(date);
     var year = date.getFullYear();
     
@@ -313,8 +390,45 @@ function getFormattedVals(possible_string_date) {
     
     return year + '-' + month + '-' + day;
   }
-  return possible_string_date
+  return final_format
 }
+
+// elimina las tildes y caracteres especiales
+var normalize = (function() {
+  var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç", 
+      to   = "AAAAAEEEEIIIIOOOOUUUUaaaaaeeeeiiiioooouuuunncc",
+      mapping = {};
+ 
+  for(var i = 0, j = from.length; i < j; i++ )
+      mapping[ from.charAt( i ) ] = to.charAt( i );
+ 
+  return function( str ) {
+      var ret = [];
+      for( var i = 0, j = str.length; i < j; i++ ) {
+          var c = str.charAt( i );
+          if( mapping.hasOwnProperty( str.charAt( i ) ) )
+              ret.push( mapping[ c ] );
+          else
+              ret.push( c );
+      }      
+      return ret.join( '' );
+  }
+})();
+
+// function getAllElementsWithAttribute(attribute)
+// {
+//   var matchingElements = [];
+//   var allElements = document.getElementsByTagName('*');
+//   for (var i = 0, n = allElements.length; i < n; i++)
+//   {
+//     if (allElements[i].getAttribute(attribute) !== null)
+//     {
+//       // Element exists with attribute. Add to array.
+//       matchingElements.push(allElements[i]);
+//     }
+//   }
+//   return matchingElements;
+// }
 
 client.connect(async(err) => {
   reschedule()
