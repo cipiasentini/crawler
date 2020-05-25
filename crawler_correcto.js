@@ -479,10 +479,10 @@ const reschedule = async () => {
 
 
 
-const insertInDB = (obj) => client.db("admin").collection("brands_nuevo").insertOne(obj).then(o => console.log(`${obj.acta} inserted in DB`)).catch(e => console.log(e))
+const insertInDB = (obj) => client.db("admin").collection("INPIBRANDS").insertOne(obj).then(o => console.log(`${obj.acta} inserted in DB`)).catch(e => console.log(e))
 
-const existsInDB = (id) => client.db("admin").collection("brands_nuevo").findOne({"acta":id}).then(it => it != null)
+const existsInDB = (id) => client.db("admin").collection("INPIBRANDS").findOne({"acta":id}).then(it => it != null)
 
 //const getMaxFromDB = () => client.db("test").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0].acta)
-const getMaxFromDB = () => client.db("admin").collection("brands_nuevo").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
+const getMaxFromDB = () => client.db("admin").collection("INPIBRANDS").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
 
