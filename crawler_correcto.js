@@ -379,7 +379,8 @@ function getFormattedVals(final_format) {
       }
 
       // sino retorno el string nomas
-      return final_format.replace(/'/g, '"'); // ojo con esto, hay que ver si toma la BD y consultas y todo almacenar json con 'string "quote"'
+      return final_format
+      // return final_format.replace(/'/g, '"'); // ojo con esto, hay que ver si toma la BD y consultas y todo almacenar json con 'string "quote"'
     }
 
     // no posee fecha (da negativo cuando no tiene en el script de la web)
