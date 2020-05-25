@@ -43,7 +43,7 @@ const c = new Crawler({
           for (let index = 1; index <= limite; index++) {
             
             // obtenemos la propiedad padre
-            let subtitulo;
+            let subtitulo = null;
             let titulo = $(`#accordion-${index} .panel-title a`).text();
             titulo = titulo.split(":");
             try {
@@ -55,8 +55,15 @@ const c = new Crawler({
             
             // obtenemos el objeto de cada prop padre
             $(`#accordion-${index} .panel-body label.input`).each((i, elem) => {
+              // para multiples titulares, creamos un titular y lo pusheamos al array .. TODO: no encuentro ejemplo
+              // let titular = {}
+
+              // if (titulo == 'TITULARIDAD') {
+
+              // }
+
               // el subtitulo es si en el titulo tiene algo despues de un ':'
-              if (subtitulo != undefined) {
+              if (subtitulo != null) {
                 obj[titulo]['SUBTITULO'] = subtitulo
               }
               
