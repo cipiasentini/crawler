@@ -9,7 +9,7 @@ const bodyParser = require('body-parser')
 const app = express()
 app.use(bodyParser.json())
 
-server = app.listen(process.env.PORT || 4000, () => console.log(`Listening on ${process.env.PORT || 3000}`))
+server = app.listen(7000, () => console.log(`Listening on ${7000}`))
 
 app.get('/', (req,res) => {res.send("Hola")})
 
@@ -55,6 +55,7 @@ const c = new Crawler({
             
             // obtenemos el objeto de cada prop padre
             $(`#accordion-${index} .panel-body label.input`).each((i, elem) => {
+
               // el subtitulo es si en el titulo tiene algo despues de un ':'
               if (subtitulo != null) {
                 obj[titulo]['SUBTITULO'] = subtitulo
@@ -507,10 +508,10 @@ const reschedule = async () => {
 
 
 
-const insertInDB = (obj) => client.db("admin").collection("INPIBRANDS").insertOne(obj).then(o => console.log(`${obj.acta} inserted in DB`)).catch(e => console.log(e))
+const insertInDB = (obj) => client.db("admin").collection("INPIBRANDS").insertOne(obj).then(o => console.log(`${obj.ACTA} inserted in DB`)).catch(e => console.log(e))
 
-const existsInDB = (id) => client.db("admin").collection("INPIBRANDS").findOne({"acta":id}).then(it => it != null)
+const existsInDB = (id) => client.db("admin").collection("INPIBRANDS").findOne({"ACTA":id}).then(it => it != null)
 
 //const getMaxFromDB = () => client.db("test").collection("brands").find().sort({acta: -1}).limit(1).toArray().then(it => it[0].acta)
-const getMaxFromDB = () => client.db("admin").collection("INPIBRANDS").find().sort({acta: -1}).limit(1).toArray().then(it => it[0]?it[0].acta:2602480)
+const getMaxFromDB = () => client.db("admin").collection("INPIBRANDS").find().sort({ACTA: -1}).limit(1).toArray().then(it => it[0]?it[0].ACTA:2602480)
 
