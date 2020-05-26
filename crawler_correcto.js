@@ -55,13 +55,6 @@ const c = new Crawler({
             
             // obtenemos el objeto de cada prop padre
             $(`#accordion-${index} .panel-body label.input`).each((i, elem) => {
-              // para multiples titulares, creamos un titular y lo pusheamos al array .. TODO: no encuentro ejemplo
-              // let titular = {}
-
-              // if (titulo == 'TITULARIDAD') {
-
-              // }
-
               // el subtitulo es si en el titulo tiene algo despues de un ':'
               if (subtitulo != null) {
                 obj[titulo]['SUBTITULO'] = subtitulo
@@ -220,6 +213,40 @@ const c = new Crawler({
             obj["DEMANDAS"] = lista_demandas;
             
           }
+
+          // en caso de tener multiples titulares lo cargaremos en la estructura TITULARIDAD_MULTIPLE
+          let tits = $(`#accordion-2 .panel-body .reg-input`).children()
+          let alltits = [];
+          let tit = {}
+          tits.each((i, elem) => {
+
+            let separador = $(elem).find("hr")
+            
+            if (separador.length == 1) {
+              alltits.push(tit)
+              tit = {}
+            }
+            
+            let fieldName = $(elem).find(".input").text().trim()
+
+            text = fieldName.split(":")[1]
+            fieldName = fieldName.split(":")[0]
+
+            fieldName = normalize(slugify(fieldName.replace(":","").replace("\.",""), "_"))
+
+            if (fieldName.length > 0){
+              let formatted_field = text.trim()
+              try {
+                formatted_field = formatFromSpan(text.trim())
+              } catch (e) {
+                console.log(e)
+                formatted_field = text.trim()
+              }
+              tit[fieldName] = formatted_field
+            }
+          })
+          
+          obj['TITULARIDAD_MULTIPLE'] = alltits;
           
           // almacenamos como array vacio a las props con objetos vacias (asi solo preguntamos por length en front)
           for(var pp in obj) {
